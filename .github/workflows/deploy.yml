@@ -1,0 +1,21 @@
+name: Deploy to REG.ru
+on:
+  push:
+    branches: [ main ]  # Триггер на push в main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.0
+        with:
+          server: '37.140.192.240'
+          username: 'u3019460'
+          password: '48ixYjrkYVPiEF73'
+          local_path: './*'  # Папка в репозитории
+          remote_path: '/www/bxtestdom1.ru/local/'  # Путь на хостинге
+          args: '-avz --delete'  # Удалять лишние файлы
