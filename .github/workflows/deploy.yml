@@ -2,16 +2,16 @@ name: Deploy to REG.ru
 on: [push]
 
 jobs:
-  deploy:
+deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+     - uses: actions/checkout@v4
 
-      - name: Upload files via SFTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.0
+     - name: Upload files via SFTP
+        uses: appleboy/scp-action@v0.1.0
         with:
-          server: ${{ secrets.SFTP_SERVER }}
-          username: ${{ secrets.SFTP_USER }}
-          password: ${{ secrets.SFTP_PASSWORD }}
-          local-dir: './'
-          server-dir: '/www/bxtestdom1.ru/local/'
+         host: ${{ secrets.SFTP_SERVER }}
+         username: ${{ secrets.SFTP_USER }}
+         password: ${{ secrets.SFTP_PASSWORD }}
+         source: './*'
+         target: '/www/bxtestdom1.ru/local/'
