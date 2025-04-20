@@ -1,4 +1,4 @@
-name: Deploy to REG.ru via SFTP
+name: FTP Deploy to REG.ru
 on: [push]
 
 jobs:
@@ -7,12 +7,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Upload files via SFTP
-        uses: wlixcc/SFTP-Deploy-Action@v1.0
+      - name: Upload files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.0
         with:
-          server: '37.140.192.240'
-          username: 'u3019460'
-          password: ${{ secrets.SFTP_PASSWORD }}
-          local_path: './*'  # Изменили с local-dir
-          remote_path: '/www/bxtestdom1.ru/local/'  # Изменили с server-dir
-          # exclude и dangerous-clean-slate удалены - этот Action их не поддерживает
+          server: "37.140.192.240"
+          username: "u3019460"
+          password: "a7YogIuIiRQj8944"
+          server-dir: "/www/bxtestdom1.ru/local/"
+          local-dir: "./"
+          exclude: |
+            .git/
+            .github/
+          dangerous-clean-slate: false
