@@ -2,14 +2,14 @@ name: Deploy to REG.ru
 on: [push]
 
 jobs:
-deploy:
+ deploy:
     runs-on: ubuntu-latest
     steps:
      - uses: actions/checkout@v4
 
      - name: Upload files via SFTP
-        uses: appleboy/scp-action@v0.1.0
-        with:
+       uses: appleboy/scp-action@v0.1.0
+       with:
          host: ${{ secrets.SFTP_SERVER }}
          username: ${{ secrets.SFTP_USER }}
          password: ${{ secrets.SFTP_PASSWORD }}
