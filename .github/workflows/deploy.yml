@@ -12,7 +12,7 @@ jobs:
         with:
           server: '37.140.192.240'
           username: 'u3019460'
-          password: '48ixYjrkYVPiEF73'
+          password: ${{ secrets.SFTP_PASSWORD }}
           local_path: './*'  # Изменили с local-dir
           remote_path: '/www/bxtestdom1.ru/local/'  # Изменили с server-dir
           # exclude и dangerous-clean-slate удалены - этот Action их не поддерживает
