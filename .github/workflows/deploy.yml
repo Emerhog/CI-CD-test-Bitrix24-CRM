@@ -10,11 +10,11 @@ jobs:
       - name: Upload files via SFTP
         uses: wlixcc/SFTP-Deploy-Action@v1.0
         with:
-          server: "37.140.192.240"
-          username: "u3019460"
-          password: "48ixYjrkYVPiEF73"
-          server-dir: "/www/bxtestdom1.ru/local/"
-          local-dir: "./"
+          server: '37.140.192.240'
+          username: 'u3019460'
+          password: '48ixYjrkYVPiEF73'
+          server-dir: '/www/bxtestdom1.ru/local/'
+          local-dir: './'
           exclude: |
             .git/
             .github/
