@@ -13,9 +13,6 @@ jobs:
           server: '37.140.192.240'
           username: 'u3019460'
           password: '48ixYjrkYVPiEF73'
-          server-dir: '/www/bxtestdom1.ru/local/'
-          local-dir: './'
-          exclude: |
-            .git/
-            .github/
-          dangerous-clean-slate: false
+          local_path: './*'  # Изменили с local-dir
+          remote_path: '/www/bxtestdom1.ru/local/'  # Изменили с server-dir
+          # exclude и dangerous-clean-slate удалены - этот Action их не поддерживает
