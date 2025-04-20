@@ -1,0 +1,111 @@
+1. Нужен SSH от Хостинга/Сервера: IP, Логин, Пароль
+2. Зайти в корень сервера www, где лежат все директории Битрикс24.
+______________________________________________________________________________________
+		  P.S Клонирование и предварительная загрузка опциональны...
+3. Создать временную папку в корне и клонировать туда удаленный репозиторий с GitHub
+	mkdir temp_git_clone
+	cd temp_git_clone
+______________________________________________________________________________________
+4. При помощи Git на Хостинге/Сервере нужно скачать все файлы находять в временной папке temp_git_clone:
+	git clone https://github.com/ваш_логин/ваш_репозиторий.git
+Для проверки есть ли Git на Сервере пишем: `git --version` Должна отобразиться версия Git.
+Если Git на Сервере не установлен: sudo apt-get update && sudo apt-get install git -y
+Установка для CentOS/AlmaLinux: sudo yum install git -y
+Если нет прав на sudo: wget https://github.com/git/git/archive/refs/tags/v2.40.1.tar.gz -O git.tar.gz
+		       tar -xf git.tar.gz
+		       cd git-2.40.1
+		       make prefix=$HOME/.local install
+5. Переходим в директроию клонированного на сервер репозитория.
+6. Клонируем все файлы в /local: cp -r * ../../local/. Ошибка возникает из-за неправильного пути.
+7. Удаляем временную папку: cd ..
+			    cd ..
+			    rm -rf temp_git_clone
+8. В репозитории GitHub нужон создать: .github/workflows/deploy.yml
+	На GitHub зайдите в свой репозиторий → кнопка Add file → Create new file.
+	Вставьте путь .github/workflows/deploy.yml в поле имени файла.
+	Вставьте содержимое YAML-кода
+	--------------------------------------------------------------------------------
+	ВАЖНО тупая шлюха на разрабе не смогла добавить игнорирование символов табуляции.
+		Поэтому все идет по пизде из-за лишнего пробела в коде.
+	--------------------------------------------------------------------------------
+
+			Код: 
+name: FTP Deploy to REG.ru
+on: [push]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.0
+        with:
+          server: "37.140.192.240"
+          username: "u3019460"
+          password: "Ваш пароль"
+          server-dir: "/www/bxtestdom1.ru/local/"
+          local-dir: "./"
+          exclude: |
+            .git/
+            .github/
+          dangerous-clean-slate: false
+
+Так же вместо логина, пароля, айпи можно подставлять переменные по типу "password: ${{ secrets.SFTP_PASSWORD }}". Что бы её создать надо зайти в:
+	Свой репозиторий -> Settings -> Secret and Variables -> Actions.
+Там мы создаем переменную. Что бы создать жмякаем New repository secret. Нзавание секрета = название переменной, всё что внутри это Value.
+Посмотреть логи можно:
+	Свой репозиторий -> Actions(вкладка сверху)
+______________________________________________________________________________________________________________________________________________________________
+		Че за YAML файл и как его заполнять?
+
+name: FTP Deploy to REG.ru          # Название workflow (отображается в GitHub Actions)
+on: [push]                         # Триггер: запуск при push в репозиторий
+
+jobs:                              # Основные задачи (jobs)
+  deploy:                          # ID задачи (можно любое название)
+    runs-on: ubuntu-latest          # ОС для запуска (Ubuntu)
+    
+    steps:                         # Шаги выполнения
+      - uses: actions/checkout@v4   # 1. Клонирует репозиторий
+
+      - name: Upload files via FTP  # 2. Название шага (логи в GitHub)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.0  # Используемый Action
+        with:                       # Параметры Action:
+          server: ${{ secrets.FTP_SERVER }}  # FTP-сервер (из Secrets)
+          username: ${{ secrets.FTP_USER }}  # Логин (из Secrets)
+          password: ${{ secrets.FTP_PASSWORD }}  # Пароль (из Secrets)
+          server-dir: "/www/bxtestdom1.ru/local/"  # Папка на сервере
+          local-dir: "./"           # Папка в репозитории (откуда копировать)
+          exclude: |                # Исключаемые файлы/папки
+            .git/                  # Игнорировать папку .git
+            .github/               # Игнорировать папку .github
+          dangerous-clean-slate: false  # Не удалять лишние файлы на сервере
+
+				Триггеры:
+1. push: Запускает workflow при пуше в репозиторий. Можно настроить для конкретных веток или путей.
+2. pull_request(слияние): Запускает workflow при создании или обновлении pull request. Можно настроить для конкретных веток.
+on:
+pull_request:
+    branches:
+     - main
+    types:
+     - closed # Запускается, когда pull request закрыт (включая слияние)
+
+jobs:
+merge_check:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.ref == 'dev'
+    runs-on: ubuntu-latest
+    steps:
+     - name: Checkout code
+        uses: actions/checkout@v4
+
+     - name: Run a script
+        run: echo "Merged dev into main!"
+3. schedule: Позволяет запускать workflow по расписанию, используя cron-синтаксис. Например, ежедневно или еженедельно.
+4. workflow_dispatch: Позволяет вручную запускать workflow через интерфейс GitHub.
+5. release: Запускает workflow при создании или изменении релиза в репозитории.
+6. issue: Запускает workflow при создании или изменении issue.
+7. fork: Запускает workflow при форке репозитория.
+8. delete: Запускает workflow при удалении ветки или тега.

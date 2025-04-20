@@ -1,0 +1,111 @@
+1. Нужен SSH от Хостинга/Сервера: IP, Логин, Пароль
+2. Зайти в корень сервера www, где лежат все директории Битрикс24.
+______________________________________________________________________________________
+          P.S Клонирование и предварительная загрузка опциональны...
+3. Создать временную папку в корне и клонировать туда удаленный репозиторий с Bitbucket
+    mkdir temp_git_clone
+    cd temp_git_clone
+______________________________________________________________________________________
+4. При помощи Git на Хостинге/Сервере нужно скачать все файлы из временной папки temp_git_clone:
+    git clone https://your_username@bitbucket.org/ваш_логин/ваш_репозиторий.git
+Для проверки есть ли Git на Сервере пишем: `git --version` Должна отобразиться версия Git.
+Если Git на Сервере не установлен: sudo apt-get update && sudo apt-get install git -y
+Установка для CentOS/AlmaLinux: sudo yum install git -y
+Если нет прав на sudo: wget https://github.com/git/git/archive/refs/tags/v2.40.1.tar.gz -O git.tar.gz
+               tar -xf git.tar.gz
+               cd git-2.40.1
+               make prefix=$HOME/.local install
+5. Переходим в директорию клонированного на сервер репозитория.
+6. Копируем все файлы в /local: cp -r * /www/bxtestdom1.ru/local/
+7. Удаляем временную папку: cd ..
+                rm -rf temp_git_clone
+8. В репозитории Bitbucket нужно создать: bitbucket-pipelines.yml
+    В Bitbucket зайдите в свой репозиторий → Settings → Pipelines → Enable Pipelines
+    Затем в корне репозитория создайте файл bitbucket-pipelines.yml
+    ________________________________________________________________________________
+    	ВАЖНО: Соблюдайте отступы в YAML (2 пробела на уровень)!
+    ________________________________________________________________________________
+
+            Код:
+image: atlassian/default-image:latest
+
+pipelines:
+  branches:
+    main:
+      - step:
+          name: Deploy to production
+          script:
+            - apt-get update
+            - apt-get install -y lftp
+            - lftp -e "
+              set ftp:ssl-allow no;
+              open ftp://$FTP_USER:$FTP_PASSWORD@$FTP_SERVER;
+              mirror -R ./ /www/bxtestdom1.ru/local/ --exclude .git/ --exclude bitbucket-pipelines.yml;
+              quit"
+
+Так же вместо логина, пароля, айпи можно подставлять переменные по типу "password: $FTP_PASSWORD". Что бы её создать надо зайти в:
+    Свой репозиторий -> Settings -> Pipelines -> Repository variables
+Там мы создаем переменную. Название переменной должно совпадать с указанным в коде.
+Посмотреть логи можно:
+    Свой репозиторий -> Pipelines(вкладка слева)
+______________________________________________________________________________________________________________________________________________________________
+        Что такое bitbucket-pipelines.yml и как его заполнять?
+
+image: atlassian/default-image:latest  # Базовый образ Docker
+
+pipelines:                            # Основные пайплайны
+  branches:                           # Ветки
+    main:                             # Для ветки main
+      - step:                         # Шаг выполнения
+          name: Deploy to production  # Название шага
+          script:                     # Выполняемые команды
+            - apt-get update          # Обновление пакетов
+            - apt-get install -y lftp # Установка FTP-клиента
+            - lftp -e "..."           # FTP-команды
+
+                Триггеры:
+1. По умолчанию запускается при push в указанные ветки (в примере - main)
+2. Ручной запуск: Pipelines → "Run pipeline"
+3. По расписанию (добавить в конфиг):
+    schedules:
+      - cron: '0 0 * * *'  # Ежедневно в 00:00
+        branches:
+          - main
+4. Для pull requests (добавить в конфиг):
+    pull-requests:
+      '**':
+        - step:
+            script:
+              - echo "Triggered by PR"
+
+______________________________________________________________________________________
+Дополнительные настройки:
+1. Кэширование (ускоряет повторные сборки):
+    caches:
+      - apt
+2. Артефакты (сохранение файлов после выполнения):
+    artifacts:
+      - local/**
+3. Параллельное выполнение:
+    parallel: 3
+4. Ограничения:
+    size: large  # Размер контейнера (medium/large/xlarge)
+Ключевые отличия от GitHub/GitLab:
+
+Файл конфигурации называется bitbucket-pipelines.yml
+
+Переменные хранятся в Settings → Pipelines → Repository variables
+
+Используется синтаксис Bitbucket Pipelines (аналогичен GitLab CI)
+
+Базовый образ - atlassian/default-image:latest
+
+Для FTP используется lftp с аналогичными параметрами
+
+Для работы необходимо:
+
+Активировать Pipelines в настройках репозитория
+
+Убедиться что на сервере открыт порт 21 (FTP)
+
+Проверить права на запись в /www/bxtestdom1.ru/local/
