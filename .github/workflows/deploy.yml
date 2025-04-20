@@ -1,4 +1,4 @@
-name: Deploy to REG.ru
+name: Deploy to REG.ru via SFTP
 on: [push]
 
 jobs:
@@ -7,14 +7,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Upload files via SCP
-        uses: appleboy/scp-action@v0.1.0
+      - name: Upload files via SFTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.0
         with:
-          host: ${{ secrets.SFTP_SERVER }}
+          server: ${{ secrets.SFTP_SERVER }}
           username: ${{ secrets.SFTP_USER }}
           password: ${{ secrets.SFTP_PASSWORD }}
-          port: 22
-          source: './*'
-          target: '/www/bxtestdom1.ru/local/'
-          overwrite: true  # Перезаписывать существующие файлы
-          strip_components: 1  # Игнорировать корневую папку репозитория
+          server-dir: "/www/bxtestdom1.ru/local/"
+          local-dir: "./"
+          exclude: |
+            .git/
+            .github/
+          dangerous-clean-slate: false
